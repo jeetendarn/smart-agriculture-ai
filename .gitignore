@@ -1,0 +1,5 @@
+venv/
+__pycache__/
+*.pkl
+*.pyc
+e:/smart-agriculture-ai/data/yield_df.csv
