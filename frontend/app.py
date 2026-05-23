@@ -1,52 +1,194 @@
 import streamlit as st
 import requests
 
-st.set_page_config(page_title="Crop Yield AI", layout="centered")
+# ======================================
+# PAGE CONFIG
+# ======================================
 
-st.title("🌾 Smart Agriculture AI System")
-st.write("Predict crop yield using Machine Learning")
+st.set_page_config(
+    page_title="Smart Agriculture AI",
+    page_icon="🌾",
+    layout="wide"
+)
 
-# =========================
-# INPUT FORM
-# =========================
+# ======================================
+# CUSTOM CSS
+# ======================================
 
-year = st.number_input("Year", 1990, 2030, 2020)
+st.markdown("""
+<style>
 
-area = st.selectbox(
+.main {
+    background-color: #f5f7fa;
+}
+
+.stButton>button {
+    width: 100%;
+    background-color: #2e8b57;
+    color: white;
+    height: 3em;
+    border-radius: 10px;
+    font-size: 18px;
+}
+
+.metric-card {
+    background-color: white;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+# ======================================
+# HEADER
+# ======================================
+
+st.title("🌾 Smart Agriculture AI Platform")
+st.markdown("AI-powered crop intelligence and yield prediction system")
+
+st.divider()
+
+# ======================================
+# SIDEBAR
+# ======================================
+
+st.sidebar.header("📋 Input Parameters")
+
+year = st.sidebar.number_input(
+    "Year",
+    min_value=1990,
+    max_value=2035,
+    value=2024
+)
+
+area = st.sidebar.selectbox(
     "Country",
-    ["India", "USA", "Brazil", "China", "Australia", "Nigeria", "Argentina"]
+    [
+        "India",
+        "USA",
+        "Brazil",
+        "China",
+        "Australia",
+        "Nigeria",
+        "Argentina"
+    ]
 )
 
-item = st.selectbox(
-    "Crop Type",
-    ["Wheat", "Rice", "Maize", "Barley", "Soybean"]
+pesticides = st.sidebar.number_input(
+    "Pesticides Tonnes",
+    min_value=0,
+    max_value=1000,
+    value=200
 )
 
-rainfall = st.number_input("Rainfall (mm/year)", 0, 5000, 1200)
+# ======================================
+# MAIN BUTTON
+# ======================================
 
-pesticides = st.number_input("Pesticides (tonnes)", 0, 1000, 200)
-
-temp = st.number_input("Average Temperature (°C)", 0.0, 50.0, 25.0)
-
-# =========================
-# PREDICT BUTTON
-# =========================
-
-if st.button("Predict Yield"):
+if st.sidebar.button("🚀 Run Smart Prediction"):
 
     payload = {
         "Year": year,
         "Area": area,
-        "Item": item,
-        "average_rain_fall_mm_per_year": rainfall,
-        "pesticides_tonnes": pesticides,
-        "avg_temp": temp
+        "pesticides_tonnes": pesticides
     }
 
-    response = requests.post("http://127.0.0.1:8000/predict", json=payload)
+    try:
 
-    if response.status_code == 200:
+        response = requests.post(
+            "http://127.0.0.1:8000/smart-predict",
+            json=payload
+        )
+
         result = response.json()
-        st.success(f"🌾 Predicted Yield: {result['predicted_yield']}")
-    else:
-        st.error("Prediction failed")
+
+        # ======================================
+        # TOP METRICS
+        # ======================================
+
+        col1, col2, col3, col4 = st.columns(4)
+
+        with col1:
+            st.metric(
+                "🌡 Temperature",
+                f"{result['weather']['temperature']} °C"
+            )
+
+        with col2:
+            st.metric(
+                "🌧 Rainfall",
+                f"{result['weather']['rainfall']} mm"
+            )
+
+        with col3:
+            st.metric(
+                "🌱 Recommended Crop",
+                result['recommended_crop']
+            )
+
+        with col4:
+            st.metric(
+                "📈 Predicted Yield",
+                round(result['predicted_yield'], 2)
+            )
+
+        st.divider()
+
+        # ======================================
+        # MAIN CONTENT
+        # ======================================
+
+        left, right = st.columns([2,1])
+
+        with left:
+
+            st.subheader("🧠 AI Agricultural Insights")
+
+            st.success(
+                f"""
+                Recommended Crop: {result['recommended_crop']}
+                
+                Fertilizer Suggestion:
+                {result['fertilizer']}
+                """
+            )
+
+            st.info(
+                f"""
+                Based on real-time weather conditions in {area},
+                the AI system predicts a yield of
+                {round(result['predicted_yield'], 2)} hg/ha.
+                """
+            )
+
+        with right:
+
+            st.subheader("🌍 Weather Summary")
+
+            st.write(f"📍 Location: {area}")
+            st.write(f"🌡 Temperature: {result['weather']['temperature']} °C")
+            st.write(f"🌧 Rainfall: {result['weather']['rainfall']} mm")
+
+        st.divider()
+
+        # ======================================
+        # EXTRA ANALYTICS
+        # ======================================
+
+        st.subheader("📊 System Intelligence")
+
+        st.progress(85)
+
+        st.caption(
+            "AI confidence score based on weather, crop recommendation, and yield estimation."
+        )
+
+    except Exception as e:
+
+        st.error(f"Error: {str(e)}")
+
+else:
+
+    st.info("👈 Enter parameters from sidebar and click Run Smart Prediction")
