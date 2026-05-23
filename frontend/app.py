@@ -98,7 +98,7 @@ if st.sidebar.button("🚀 Run Smart Prediction"):
     try:
 
         response = requests.post(
-            "http://127.0.0.1:8000/smart-predict",
+            "https://smart-agriculture-api.onrender.com/smart-predict",
             json=payload
         )
 
